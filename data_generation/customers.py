@@ -1,25 +1,15 @@
 import pandas as pd
-from faker import Faker
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import random
 from unidecode import unidecode
 from pathlib import Path
-from config import DATA_DIR
-# customers -> 1000
-# accounts -> 150
-# transactions -> 5000
-# loans -> 50
-# cards -> 120
-
-fake_tr = Faker("tr_TR")
-custom_date = date(2026, 6, 12)
-
-min_birth_date = custom_date - relativedelta(years=80)
-max_birth_date = custom_date - relativedelta(years=18)
+from config import DATA_DIR, FAKE_TR, CUSTOM_DATE
 
 
-# Customers.csv
+min_birth_date = CUSTOM_DATE - relativedelta(years=80)
+max_birth_date = CUSTOM_DATE - relativedelta(years=18)
+
 
 
 city_list = [
@@ -75,7 +65,7 @@ income_ranges = {
     "Nurse" : (35000, 80000),
     "Sales Representative" : (25000, 100000),
     "Business Owner" : (30000, 500000),
-    "Student" : (0, 25000),
+    "Student" : (3000, 25000),
     "Retired" : (15000, 60000)
 }
 
@@ -86,16 +76,16 @@ def create_customers_csv(n_customers, csv_path):
     for n in range(1, n_customers + 1):
         customer_id = f"CUST{n:08d}"
         
-        first_name = fake_tr.first_name()
-        last_name = fake_tr.last_name()
+        first_name = FAKE_TR.first_name()
+        last_name = FAKE_TR.last_name()
         
-        email = f"{first_name.lower()}.{last_name.lower()}{random.randint(0,999)}@{fake_tr.free_email_domain()}"
+        email = f"{first_name.lower()}.{last_name.lower()}{random.randint(0,999)}@{FAKE_TR.free_email_domain()}"
         email = unidecode(email)
         
-        birth_date = fake_tr.date_between(start_date=min_birth_date, end_date=max_birth_date)
-        age = relativedelta(custom_date, birth_date).years
+        birth_date = FAKE_TR.date_between(start_date=min_birth_date, end_date=max_birth_date)
+        age = relativedelta(CUSTOM_DATE, birth_date).years
         # phone_number = f"05{fake_tr.msisdn()[4:]}" # format 05XX XXX XX XX
-        phone_number = fake_tr.numerify(text="05#########")
+        phone_number = FAKE_TR.numerify(text="05#########")
         
         city = random.choice(city_list)
         country = "Turkey"
@@ -106,7 +96,7 @@ def create_customers_csv(n_customers, csv_path):
         segment = get_segment(income)
         
         eligible_date = birth_date + relativedelta(years=18)
-        signup_date = fake_tr.date_between(start_date=eligible_date, end_date =custom_date)
+        signup_date = FAKE_TR.date_between(start_date=eligible_date, end_date=CUSTOM_DATE)
         
         customers_dict = {"customer_id": customer_id, 
                             "first_name": first_name,
