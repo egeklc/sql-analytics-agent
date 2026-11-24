@@ -10,19 +10,19 @@ def get_n_transactions():
     return random.randint(3,10)
 
 def get_transaction_type():
-    txn_type = ["deposit", "withdrawal", "transfer_in", "transfer_out"]
+    transaction_type = ["deposit", "withdrawal", "transfer_in", "transfer_out"]
     txn_weights = [30, 40, 15, 15]
-    return random.choices(txn_type, txn_weights, k=1)[0]
+    return random.choices(transaction_type, txn_weights, k=1)[0]
 
 def get_transaction_amount(transaction_type, opening_balance, currency):
     if transaction_type in ("deposit", "withdrawal"):
         multiplier = random.uniform(0.05, 0.3)
         amount = opening_balance * multiplier
-        return convert_currency(currency, amount)
+        return round(amount, 4 if currency == "Gold" else 2)
     else:
         multiplier= random.uniform(0.1, 0.6)
         amount = opening_balance * multiplier
-        return convert_currency(currency, amount)
+        return round(amount, 4 if currency == "Gold" else 2)
 
 def get_transaction_date(opened_date, closed_date):
     opened_date = pd.to_datetime(opened_date)
@@ -36,10 +36,10 @@ def get_balance(opening_balance, txn_list):
     for txn in txn_list:
         txn["balance_before"] = balance
         
-        if (balance <= 0 and txn["txn_type"] in ("withdrawal", "transfer_out")):
-            txn["txn_type"] = random.choice(["deposit", "transfer_in"])
+        if (balance <= 0 and txn["transaction_type"] in ("withdrawal", "transfer_out")):
+            txn["transaction_type"] = random.choice(["deposit", "transfer_in"])
             
-        if txn["txn_type"] in ("deposit", "transfer_in"):
+        if txn["transaction_type"] in ("deposit", "transfer_in"):
             balance += txn["amount"]
         else:
             if txn["amount"] > balance:
@@ -66,19 +66,19 @@ def create_transactions_csv(acc_df, transactions_path, accounts_path):
         txn_list = []
         for _ in range(0,n_txn):
             count += 1
-            txn_id = f"TXN{count:08d}"
-            txn_type = get_transaction_type()
-            amount = get_transaction_amount(txn_type, opening_balance, currency)
-            txn_date =  get_transaction_date(opened_date=opened_date, closed_date=closed_date)
+            transaction_id = f"TXN{count:08d}"
+            transaction_type = get_transaction_type()
+            amount = get_transaction_amount(transaction_type, opening_balance, currency)
+            transaction_date =  get_transaction_date(opened_date=opened_date, closed_date=closed_date)
             channel = get_channel()
-            txn_dict = {"txn_id" : txn_id,
+            txn_dict = {"transaction_id" : transaction_id,
                         "account_id": account.account_id,
-                        "txn_type": txn_type,
+                        "transaction_type": transaction_type,
                         "amount": amount,
-                        "txn_date": txn_date,
+                        "transaction_date": transaction_date,
                         "channel": channel}
             txn_list.append(txn_dict)
-        sorted_txn_list = sorted(txn_list, key=lambda txn: txn["txn_date"])
+        sorted_txn_list = sorted(txn_list, key=lambda txn: txn["transaction_date"])
         final_balance = get_balance(opening_balance=opening_balance, txn_list=sorted_txn_list)
         transactions.extend(sorted_txn_list)
         acc_df.loc[acc_df["account_id"] == account.account_id, "current_balance"] = final_balance
